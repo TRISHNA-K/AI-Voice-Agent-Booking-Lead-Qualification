@@ -1,0 +1,177 @@
+{
+  "nodes": [
+    {
+      "id": "node-start-inbound",
+      "type": "startCall",
+      "position": {
+        "x": 100.0,
+        "y": 100.0
+      },
+      "data": {
+        "name": "Inbound Call Entry",
+        "prompt": "Hello! Thank you for calling NovaTech Solutions. My name is Alex. Are you calling to book a new appointment or manage an existing one?",
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 10,
+        "tools": null,
+        "transfer_phone_number": null,
+        "webhook_url": null
+      }
+    },
+    {
+      "id": "node-agent-booking",
+      "type": "agentNode",
+      "position": {
+        "x": 100.0,
+        "y": 300.0
+      },
+      "data": {
+        "name": "Alex - Booking Specialist",
+        "prompt": "\nYou are Alex, an intelligent and warm Voice AI Booking Specialist for NovaTech Solutions.\nYour goal is to assist callers in scheduling, rescheduling, or answering questions about appointments.\n\n### Voice Conversation Guidelines:\n1. Speak in natural, warm, and concise spoken English. Never use markdown formatting, bullet points, asterisks, or numbered lists in spoken responses.\n2. Keep each response under 25 to 30 words so the conversation flows like a natural phone call.\n3. Use natural conversational acknowledgments when appropriate: \"Got it\", \"Sure thing\", \"Let me check that for you\", \"Understood\".\n4. Always verify caller details clearly:\n   - Full name\n   - Email address (spell out or confirm: \"just to make sure, that's j-o-h-n at example dot com?\")\n   - Best contact phone number\n   - The primary service or topic they'd like to discuss\n5. Before booking, call the `check_available_slots` tool to offer 2 or 3 real openings.\n6. Once the caller chooses a time, call `book_appointment` and speak the final confirmation clearly including date and time.\n7. If the caller asks for something you cannot handle or becomes frustrated, offer to transfer them using `transfer_to_human`.\n\n### Tool Calling Protocol:\n- If caller asks about availability: Call `check_available_slots(date_str=...)`.\n- If caller provides preferred slot and contact info: Call `book_appointment(start_time=..., name=..., email=...)`.\n- If caller wants to reschedule or cancel: Call `cancel_appointment(booking_id=...)` or find new slot.\n- If caller needs human help: Call `transfer_to_human(reason=...)`.\n\nMaintain a calm, helpful, and professional demeanor at all times.\n",
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 8,
+        "tools": [
+          {
+            "name": "check_available_slots",
+            "description": "Check real-time calendar availability on Cal.com and return open slots.",
+            "endpoint_url": "http://localhost:8000/tools/calcom/check-slots",
+            "method": "POST",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "date_str": {
+                  "type": "string",
+                  "description": "Spoken date reference, e.g. 'tomorrow' or 'next Tuesday'"
+                },
+                "max_options": {
+                  "type": "integer",
+                  "description": "Number of alternative slots to return"
+                }
+              },
+              "required": null
+            },
+            "headers": null
+          },
+          {
+            "name": "book_appointment",
+            "description": "Book the selected time slot on Cal.com and record booking in CRM.",
+            "endpoint_url": "http://localhost:8000/tools/calcom/book-appointment",
+            "method": "POST",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "start_time": {
+                  "type": "string",
+                  "description": "ISO timestamp or spoken slot representation"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Caller full name"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "Caller email address"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Topic or inquiry notes"
+                }
+              },
+              "required": [
+                "start_time",
+                "name",
+                "email"
+              ]
+            },
+            "headers": null
+          },
+          {
+            "name": "transfer_to_human",
+            "description": "Escalate and transfer call to a human support agent.",
+            "endpoint_url": "http://localhost:8000/tools/telephony/transfer-call",
+            "method": "POST",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "transfer_reason": {
+                  "type": "string",
+                  "description": "Reason for human escalation"
+                },
+                "caller_name": {
+                  "type": "string",
+                  "description": "Caller name if known"
+                }
+              },
+              "required": [
+                "transfer_reason"
+              ]
+            },
+            "headers": null
+          }
+        ],
+        "transfer_phone_number": null,
+        "webhook_url": null
+      }
+    },
+    {
+      "id": "node-webhook-crm-sync",
+      "type": "webhook",
+      "position": {
+        "x": 100.0,
+        "y": 500.0
+      },
+      "data": {
+        "name": "Sync Call & Booking to CRM",
+        "prompt": null,
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 10,
+        "tools": null,
+        "transfer_phone_number": null,
+        "webhook_url": "http://localhost:8000/webhooks/dograh/call-ended"
+      }
+    },
+    {
+      "id": "node-end-inbound",
+      "type": "endCall",
+      "position": {
+        "x": 100.0,
+        "y": 700.0
+      },
+      "data": {
+        "name": "End Call",
+        "prompt": null,
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 10,
+        "tools": null,
+        "transfer_phone_number": null,
+        "webhook_url": null
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-inbound-1",
+      "source": "node-start-inbound",
+      "target": "node-agent-booking",
+      "condition": "Caller responds to initial greeting.",
+      "transition_speech": null
+    },
+    {
+      "id": "edge-inbound-2",
+      "source": "node-agent-booking",
+      "target": "node-webhook-crm-sync",
+      "condition": "Appointment is successfully booked or caller has finished their inquiry.",
+      "transition_speech": "Thank you for choosing NovaTech. We look forward to speaking with you then!"
+    },
+    {
+      "id": "edge-inbound-3",
+      "source": "node-webhook-crm-sync",
+      "target": "node-end-inbound",
+      "condition": "Post-call sync completes.",
+      "transition_speech": null
+    }
+  ]
+}

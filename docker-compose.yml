@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  voice-agent-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: voice-agent-tool-server
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - DEBUG=False
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - WEBHOOK_BASE_URL=http://localhost:8000
+      - CRM_PROVIDER=mock
+      - CALCOM_API_KEY=${CALCOM_API_KEY:-cal_live_mock_api_key_12345}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+      - ./workflows:/app/workflows
+    restart: unless-stopped

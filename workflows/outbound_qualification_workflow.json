@@ -1,0 +1,188 @@
+{
+  "nodes": [
+    {
+      "id": "node-start-outbound",
+      "type": "startCall",
+      "position": {
+        "x": 150.0,
+        "y": 100.0
+      },
+      "data": {
+        "name": "Outbound Opening",
+        "prompt": "Hi there, this is Jordan calling from NovaTech Solutions regarding your inquiry on our Voice AI agents. Did I catch you at an okay time for a quick chat?",
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 10,
+        "tools": null,
+        "transfer_phone_number": null,
+        "webhook_url": null
+      }
+    },
+    {
+      "id": "node-agent-qualifier",
+      "type": "agentNode",
+      "position": {
+        "x": 150.0,
+        "y": 300.0
+      },
+      "data": {
+        "name": "Jordan - Lead Qualifier",
+        "prompt": "\nYou are Jordan, a professional Lead Qualification Specialist from NovaTech Solutions.\nYou are calling a business lead who recently expressed interest in NovaTech's Voice AI and automation solutions.\n\n### Objective:\nConduct a quick, friendly 2-minute conversation to understand their current needs using the BANT qualification framework:\n- Need: What challenges are they experiencing with customer appointments, missed calls, or sales pipeline?\n- Authority: What role do they play in evaluating and adopting new technology?\n- Timeline: When are they aiming to implement a solution (e.g. this month, this quarter)?\n- Budget: Have they allocated a budget or project range for this initiative?\n\n### Conversational Rules for Voice:\n1. First 10 seconds: Greet warmly, state reason for calling, and check if they have 2 minutes:\n   \"Hi {customer_name}, this is Jordan calling from NovaTech Solutions. I saw you recently requested info on our Voice AI agents. Did I catch you at an okay time for a quick 2-minute chat?\"\n2. If they are busy: Offer to call back at a better time or send an email link.\n3. Ask ONE question at a time. Never barrage the prospect with multiple questions.\n4. Listen actively. Validate their answers before moving to the next question (\"That makes total sense\", \"We hear that a lot from growing teams\").\n5. Real-Time Routing:\n   - If QUALIFIED (clear need, decision maker, near-term timeline):\n     Transition smoothly into booking an executive discovery session:\n     \"Based on what you've shared, I'd love to connect you with our solutions architect for a live walkthrough tailored to your setup. Do you have 15 minutes open later this week?\"\n     Then call `check_available_slots` and `book_appointment`.\n   - If WARM / FUTURE INTEREST:\n     Offer to email relevant case studies and schedule a follow-up date.\n   - If NOT INTERESTED / UNQUALIFIED:\n     Thank them politely for their time and wrap up cleanly without being pushy.\n6. Never use markdown symbols, bullet points, asterisks, or robotic phrasing. Keep sentences short and conversational.\n",
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 8,
+        "tools": [
+          {
+            "name": "check_available_slots",
+            "description": "Check live openings for a discovery demo session on Cal.com.",
+            "endpoint_url": "http://localhost:8000/tools/calcom/check-slots",
+            "method": "POST",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "date_str": {
+                  "type": "string",
+                  "description": "Date reference"
+                }
+              },
+              "required": null
+            },
+            "headers": null
+          },
+          {
+            "name": "book_discovery_call",
+            "description": "Book confirmed discovery walkthrough on Cal.com.",
+            "endpoint_url": "http://localhost:8000/tools/calcom/book-appointment",
+            "method": "POST",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "start_time": {
+                  "type": "string",
+                  "description": "Selected slot"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Prospect name"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "Prospect email"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "BANT details and requirements"
+                }
+              },
+              "required": [
+                "start_time",
+                "name",
+                "email"
+              ]
+            },
+            "headers": null
+          },
+          {
+            "name": "update_lead_qualification",
+            "description": "Update CRM with BANT qualification scores, lifecycle stage, and notes.",
+            "endpoint_url": "http://localhost:8000/tools/crm/update-qualification",
+            "method": "POST",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "lead_id": {
+                  "type": "string",
+                  "description": "CRM Lead ID"
+                },
+                "stage": {
+                  "type": "string",
+                  "description": "SQL, MQL, or Disqualified"
+                },
+                "score": {
+                  "type": "integer",
+                  "description": "BANT score 0-100"
+                },
+                "bant_data": {
+                  "type": "object",
+                  "description": "Extracted BANT fields"
+                },
+                "summary": {
+                  "type": "string",
+                  "description": "Summary rationale"
+                }
+              },
+              "required": [
+                "lead_id",
+                "stage",
+                "score",
+                "bant_data"
+              ]
+            },
+            "headers": null
+          }
+        ],
+        "transfer_phone_number": null,
+        "webhook_url": null
+      }
+    },
+    {
+      "id": "node-webhook-outbound-sync",
+      "type": "webhook",
+      "position": {
+        "x": 150.0,
+        "y": 500.0
+      },
+      "data": {
+        "name": "CRM Call & Transcript Sync",
+        "prompt": null,
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 10,
+        "tools": null,
+        "transfer_phone_number": null,
+        "webhook_url": "http://localhost:8000/webhooks/dograh/call-ended"
+      }
+    },
+    {
+      "id": "node-end-outbound",
+      "type": "endCall",
+      "position": {
+        "x": 150.0,
+        "y": 700.0
+      },
+      "data": {
+        "name": "End Outbound Call",
+        "prompt": null,
+        "allow_interrupt": true,
+        "wait_for_user_response": true,
+        "wait_for_user_response_timeout": 10,
+        "tools": null,
+        "transfer_phone_number": null,
+        "webhook_url": null
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-outbound-1",
+      "source": "node-start-outbound",
+      "target": "node-agent-qualifier",
+      "condition": "Prospect answers call and is open to chatting.",
+      "transition_speech": null
+    },
+    {
+      "id": "edge-outbound-2",
+      "source": "node-agent-qualifier",
+      "target": "node-webhook-outbound-sync",
+      "condition": "BANT qualification is complete and next step is set.",
+      "transition_speech": "Thank you so much for your time today. Have a great day!"
+    },
+    {
+      "id": "edge-outbound-3",
+      "source": "node-webhook-outbound-sync",
+      "target": "node-end-outbound",
+      "condition": "Sync completes.",
+      "transition_speech": null
+    }
+  ]
+}
