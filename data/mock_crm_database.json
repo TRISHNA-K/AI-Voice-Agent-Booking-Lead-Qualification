@@ -68,9 +68,9 @@
       "status": "Appointment Booked",
       "stage": "Sales Qualified Lead (SQL)",
       "lead_score": 0,
-      "notes": "Appointment booked via Voice Agent for Tuesday, November 17th at 3 PM Eastern",
+      "notes": "Appointment booked via Voice Agent for Wednesday, November 18th at 3 PM Eastern",
       "created_at": "2026-11-17T09:13:44.573732",
-      "updated_at": "2026-11-17T09:23:47.330368",
+      "updated_at": "2026-11-17T16:14:25.673204",
       "call_logs": [
         {
           "call_id": "call_1794887024",
@@ -104,6 +104,39 @@
           "recording_url": null,
           "booking_id": null,
           "timestamp": "2026-11-17T09:23:47.330351"
+        },
+        {
+          "call_id": "call_1794909908",
+          "direction": "inbound",
+          "duration_seconds": 95,
+          "summary": "Successful appointment booking.",
+          "transcript": "Caller: I want to book tomorrow. Agent: You are booked.",
+          "outcome": "Completed",
+          "recording_url": null,
+          "booking_id": null,
+          "timestamp": "2026-11-17T15:35:08.784121"
+        },
+        {
+          "call_id": "call_1794911161",
+          "direction": "inbound",
+          "duration_seconds": 95,
+          "summary": "Successful appointment booking.",
+          "transcript": "Caller: I want to book tomorrow. Agent: You are booked.",
+          "outcome": "Completed",
+          "recording_url": null,
+          "booking_id": null,
+          "timestamp": "2026-11-17T15:56:01.911720"
+        },
+        {
+          "call_id": "call_1794912265",
+          "direction": "inbound",
+          "duration_seconds": 95,
+          "summary": "Successful appointment booking.",
+          "transcript": "Caller: I want to book tomorrow. Agent: You are booked.",
+          "outcome": "Completed",
+          "recording_url": null,
+          "booking_id": null,
+          "timestamp": "2026-11-17T16:14:25.673195"
         }
       ]
     },
@@ -132,7 +165,21 @@
       "lead_score": 0,
       "notes": "Booked via Voice Agent for Tuesday, November 24th at 10 AM ",
       "created_at": "2026-11-17T09:14:56.444755",
-      "updated_at": "2026-11-17T09:23:47.074131",
+      "updated_at": "2026-11-17T16:14:25.230940",
+      "call_logs": []
+    },
+    {
+      "id": "lead_1794900396",
+      "phone": null,
+      "name": "Michael Scott",
+      "email": "michael.scott@dunder.example",
+      "company": "Independent",
+      "status": "Appointment Booked",
+      "stage": "Sales Qualified Lead (SQL)",
+      "lead_score": 0,
+      "notes": "Booked via Voice Agent for Tuesday, November 24th at 10 AM ",
+      "created_at": "2026-11-17T12:56:36.298188",
+      "updated_at": "2026-11-17T12:56:36.298188",
       "call_logs": []
     }
   ],

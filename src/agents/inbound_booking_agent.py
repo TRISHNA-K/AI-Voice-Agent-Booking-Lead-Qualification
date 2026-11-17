@@ -143,7 +143,7 @@ class InboundBookingAgent(BaseVoiceAgent):
 
         # Check if OpenAI API key is set for live LLM execution
         settings = get_settings()
-        if settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.startswith("sk-"):
+        if settings.has_valid_openai_key:
             return await self._process_with_openai(user_utterance)
 
         # High-precision conversational state machine engine for offline/testing/mock mode

@@ -61,6 +61,16 @@ class Settings(BaseSettings):
     BANT_MIN_QUALIFIED_SCORE: int = 70
     BANT_MIN_WARM_SCORE: int = 40
 
+    @property
+    def has_valid_openai_key(self) -> bool:
+        """Check if a real, functional OpenAI API key is configured (not a dummy placeholder)."""
+        key = (self.OPENAI_API_KEY or "").strip()
+        if not key.startswith("sk-"):
+            return False
+        if any(token in key.lower() for token in ["your_", "placeholder", "sk-your_openai"]):
+            return False
+        return len(key) >= 25
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

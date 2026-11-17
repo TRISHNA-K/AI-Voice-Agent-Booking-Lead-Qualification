@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaTech AI Voice Agent Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            },
+            accent: {
+              500: '#6366f1',
+              600: '#4f46e5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .waveform-bar {
+      animation: pulseWave 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes pulseWave {
+      0% { height: 6px; }
+      100% { height: 26px; }
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background-color: rgba(156, 163, 175, 0.4);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Top Navbar -->
+  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="phone-call" class="h-5 w-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold tracking-tight text-white">NovaTech Voice AI</h1>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Backend Connected
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Inbound Scheduling & Outbound BANT Qualification</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <div id="aiModeBadge" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+          <i data-lucide="cpu" class="h-4 w-4 text-cyan-400"></i>
+          <span>Mode: <strong id="aiModeLabel" class="text-white">Deterministic Mock</strong></span>
+        </div>
+
+        <button onclick="switchTab('agents')" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-md transition-all">
+          <i data-lucide="mic" class="h-4 w-4"></i>
+          <span>Test Live Voice Call</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-slate-900 border-b border-slate-800 px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto flex space-x-1 sm:space-x-4 overflow-x-auto custom-scroll py-2">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-3 py-2 rounded-lg text-sm font-medium transition-all text-white bg-slate-800 flex items-center gap-2">
+        <i data-lucide="layout-dashboard" class="h-4 w-4 text-emerald-400"></i> Dashboard
+      </button>
+      <button onclick="switchTab('agents')" id="tab-agents" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-2">
+        <i data-lucide="bot" class="h-4 w-4 text-cyan-400"></i> AI Agents (Alex & Jordan)
+      </button>
+      <button onclick="switchTab('calls')" id="tab-calls" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-2">
+        <i data-lucide="phone-incoming" class="h-4 w-4 text-blue-400"></i> Live Call Monitoring
+      </button>
+      <button onclick="switchTab('appointments')" id="tab-appointments" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-2">
+        <i data-lucide="calendar" class="h-4 w-4 text-purple-400"></i> Appointments
+      </button>
+      <button onclick="switchTab('crm')" id="tab-crm" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-2">
+        <i data-lucide="users" class="h-4 w-4 text-amber-400"></i> CRM & Leads
+      </button>
+      <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-2">
+        <i data-lucide="bar-chart-3" class="h-4 w-4 text-pink-400"></i> Analytics
+      </button>
+      <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800/60 flex items-center gap-2">
+        <i data-lucide="settings" class="h-4 w-4 text-slate-400"></i> Settings & API
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- TAB 1: DASHBOARD OVERVIEW -->
+    <section id="content-dashboard" class="tab-content space-y-6">
+      <!-- KPI Stats Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <!-- Total Calls -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Calls Processed</span>
+            <div class="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <i data-lucide="phone-call" class="h-4 w-4"></i>
+            </div>
+          </div>
+          <div class="mt-4 flex items-baseline justify-between">
+            <span id="kpi-calls" class="text-3xl font-extrabold text-white">0</span>
+            <span class="text-xs text-emerald-400 font-medium flex items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-0.5"></i> +100% active</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-500">Inbound calls & Outbound dials</p>
+        </div>
+
+        <!-- Appointments Booked -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Appointments Booked</span>
+            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+              <i data-lucide="calendar-check" class="h-4 w-4"></i>
+            </div>
+          </div>
+          <div class="mt-4 flex items-baseline justify-between">
+            <span id="kpi-bookings" class="text-3xl font-extrabold text-white">0</span>
+            <span class="text-xs text-emerald-400 font-medium flex items-center">Cal.com Synced</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-500">Directly scheduled via Voice Agent</p>
+        </div>
+
+        <!-- Qualified Leads (SQL) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Qualified Leads (SQL)</span>
+            <div class="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+              <i data-lucide="award" class="h-4 w-4"></i>
+            </div>
+          </div>
+          <div class="mt-4 flex items-baseline justify-between">
+            <span id="kpi-qualified" class="text-3xl font-extrabold text-white">0</span>
+            <span id="kpi-qual-rate" class="text-xs text-amber-400 font-medium">BANT ≥ 70</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-500">Decision makers with verified budget</p>
+        </div>
+
+        <!-- Conversion Rate -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Conversion Rate</span>
+            <div class="h-8 w-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+              <i data-lucide="percent" class="h-4 w-4"></i>
+            </div>
+          </div>
+          <div class="mt-4 flex items-baseline justify-between">
+            <span id="kpi-conversion" class="text-3xl font-extrabold text-white">0%</span>
+            <span class="text-xs text-purple-400 font-medium">Booking / Call</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-500">Voice-to-meeting efficiency</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Agent Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Alex Inbound Agent Card -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="h-14 w-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl font-bold shadow-lg">
+                <i data-lucide="headset" class="h-7 w-7"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-lg font-bold text-white">Alex</h3>
+                  <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Inbound Specialist</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">Calendar Availability • Real-time Booking • Rescheduling • Human Transfer</p>
+              </div>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 mr-1.5 animate-ping"></span> Live & Ready
+            </span>
+          </div>
+
+          <div class="mt-6 flex flex-wrap gap-2 text-xs">
+            <span class="bg-slate-800 px-3 py-1 rounded-lg text-slate-300 border border-slate-700/60">⚡ Cal.com Tool Calling</span>
+            <span class="bg-slate-800 px-3 py-1 rounded-lg text-slate-300 border border-slate-700/60">📋 CRM Auto-Sync</span>
+            <span class="bg-slate-800 px-3 py-1 rounded-lg text-slate-300 border border-slate-700/60">🔄 Human Escalation</span>
+          </div>
+
+          <div class="mt-6 pt-5 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Trigger: Inbound customer call</span>
+            <button onclick="startAgentSimulation('alex')" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs transition-all flex items-center gap-2">
+              <i data-lucide="mic" class="h-4 w-4"></i> Call Alex Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Jordan Outbound Agent Card -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="h-14 w-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl font-bold shadow-lg">
+                <i data-lucide="phone-outgoing" class="h-7 w-7"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-lg font-bold text-white">Jordan</h3>
+                  <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Outbound SDR</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">BANT Qualification • Objection Handling • Need Discovery • Demo Booking</p>
+              </div>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-950 text-cyan-400 border border-cyan-800">
+              <span class="h-1.5 w-1.5 rounded-full bg-cyan-400 mr-1.5 animate-ping"></span> Live & Ready
+            </span>
+          </div>
+
+          <div class="mt-6 flex flex-wrap gap-2 text-xs">
+            <span class="bg-slate-800 px-3 py-1 rounded-lg text-slate-300 border border-slate-700/60">🎯 BANT Scorer (0-100)</span>
+            <span class="bg-slate-800 px-3 py-1 rounded-lg text-slate-300 border border-slate-700/60">📊 SQL / MQL Auto-Tagging</span>
+            <span class="bg-slate-800 px-3 py-1 rounded-lg text-slate-300 border border-slate-700/60">📅 Discovery Booking</span>
+          </div>
+
+          <div class="mt-6 pt-5 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Trigger: Dograh campaign dispatch</span>
+            <button onclick="startAgentSimulation('jordan')" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-semibold text-xs transition-all flex items-center gap-2">
+              <i data-lucide="phone-outgoing" class="h-4 w-4"></i> Dispatch Jordan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Transcripts & Recent Activity Preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="activity" class="h-4 w-4 text-emerald-400"></i> Recent Call Engagement Log
+            </h3>
+            <button onclick="switchTab('calls')" class="text-xs text-emerald-400 hover:underline">View All Transcripts &rarr;</button>
+          </div>
+          <div id="dashboardRecentCalls" class="divide-y divide-slate-800/60">
+            <div class="py-4 text-center text-xs text-slate-500">Loading call history...</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+              <i data-lucide="pie-chart" class="h-4 w-4 text-purple-400"></i> Lead Qualification Funnel
+            </h3>
+            <div class="h-48 relative">
+              <canvas id="miniFunnelChart"></canvas>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between text-xs text-slate-400">
+            <span>Automatic BANT threshold</span>
+            <span class="font-semibold text-white">SQL ≥ 70 pts</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: AI AGENTS INTERACTIVE SIMULATOR (WITH AUDIO & VOICE) -->
+    <section id="content-agents" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="mic-2" class="h-5 w-5 text-emerald-400"></i> Live Interactive Agent Simulator
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Converse directly with Alex or Jordan in your browser using microphone voice or typed speech.</p>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <div class="inline-flex rounded-xl bg-slate-800 p-1 border border-slate-700">
+              <button onclick="selectActiveSimulatorAgent('alex')" id="btn-select-alex" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-white transition-all flex items-center gap-1.5">
+                <i data-lucide="headset" class="h-3.5 w-3.5"></i> Alex (Inbound)
+              </button>
+              <button onclick="selectActiveSimulatorAgent('jordan')" id="btn-select-jordan" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                <i data-lucide="phone-outgoing" class="h-3.5 w-3.5"></i> Jordan (Outbound)
+              </button>
+            </div>
+
+            <button onclick="resetSimulatorSession()" title="Restart Call" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs flex items-center gap-1">
+              <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Simulation Screen -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left: Call Chat & Voice Controls -->
+          <div class="lg:col-span-2 flex flex-col h-[520px] bg-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden">
+            <!-- Call Header Bar -->
+            <div class="px-5 py-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div id="simAgentAvatar" class="h-8 w-8 rounded-full bg-emerald-500/20 border border-emerald-500 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                  A
+                </div>
+                <div>
+                  <h4 id="simAgentName" class="text-sm font-bold text-white">Alex (Inbound Booking)</h4>
+                  <span id="simCallStatus" class="text-xs text-emerald-400 flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Call Connected
+                  </span>
+                </div>
+              </div>
+
+              <!-- Audio Synthesis & Waveform Indicator -->
+              <div id="voiceWaveform" class="hidden items-center space-x-1">
+                <div class="w-1 bg-emerald-400 rounded waveform-bar" style="animation-delay: 0.1s"></div>
+                <div class="w-1 bg-emerald-400 rounded waveform-bar" style="animation-delay: 0.3s"></div>
+                <div class="w-1 bg-emerald-400 rounded waveform-bar" style="animation-delay: 0.5s"></div>
+                <div class="w-1 bg-emerald-400 rounded waveform-bar" style="animation-delay: 0.2s"></div>
+                <div class="w-1 bg-emerald-400 rounded waveform-bar" style="animation-delay: 0.4s"></div>
+                <span class="text-xs text-emerald-400 font-medium ml-2">Speaking...</span>
+              </div>
+            </div>
+
+            <!-- Dialogue Scroll Area -->
+            <div id="dialogueContainer" class="flex-1 p-5 overflow-y-auto space-y-4 custom-scroll">
+              <!-- Initial Welcome message inserted by script -->
+            </div>
+
+            <!-- Input Bar -->
+            <div class="p-4 bg-slate-900 border-t border-slate-800">
+              <form id="simulatorForm" onsubmit="handleSimulatorSubmit(event)" class="flex items-center space-x-2">
+                <button type="button" id="micButton" onclick="toggleMicrophone()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center justify-center" title="Toggle Speech-to-Text Microphone">
+                  <i data-lucide="mic" id="micIcon" class="h-5 w-5 text-emerald-400"></i>
+                </button>
+                <input type="text" id="simulatorInput" placeholder="Speak or type caller response, e.g. 'I'd like to book tomorrow at 2pm'..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all flex items-center gap-1.5">
+                  <i data-lucide="send" class="h-4 w-4"></i>
+                  <span>Send</span>
+                </button>
+              </form>
+              <div class="mt-2 flex items-center justify-between text-xs text-slate-500 px-1">
+                <span>Quick prompts: <button type="button" onclick="fillPrompt('Tomorrow afternoon at 2pm works great')" class="underline hover:text-slate-300">"Tomorrow at 2pm"</button> • <button type="button" onclick="fillPrompt('My name is Bruce Wayne and email is bruce@wayne.example')" class="underline hover:text-slate-300">"Name & Email"</button></span>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="voiceSynthesisToggle" checked class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0">
+                  <span class="text-slate-400">Speak AI responses aloud</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Real-time Telemetry, Tool Calls & BANT Inspector -->
+          <div class="flex flex-col h-[520px] bg-slate-950 border border-slate-800/80 rounded-2xl p-5 overflow-y-auto custom-scroll space-y-4">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="terminal" class="h-4 w-4 text-cyan-400"></i> Active Telemetry & Tool Executions
+            </h4>
+
+            <!-- Tool Execution Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Executed Tool</span>
+              <div id="inspectorToolCard" class="mt-2 text-xs text-slate-400">
+                <span class="text-slate-500 italic">No tools called yet in this turn.</span>
+              </div>
+            </div>
+
+            <!-- BANT / State Phase Indicator -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Qualification & Stage State</span>
+              <div id="inspectorStateCard" class="mt-2 space-y-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Current Phase:</span>
+                  <span id="inspectPhase" class="text-white font-medium">Greeting</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">BANT Score:</span>
+                  <span id="inspectScore" class="text-amber-400 font-bold">--</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Cal.com Slot:</span>
+                  <span id="inspectSlot" class="text-slate-300">Pending</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Architecture Info -->
+            <div class="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 text-xs text-slate-400 space-y-2">
+              <div class="flex items-center gap-1.5 font-semibold text-slate-300">
+                <i data-lucide="info" class="h-3.5 w-3.5 text-cyan-400"></i> How it works
+              </div>
+              <p>Each turn executes deterministic entity extraction, checks Cal.com availability in real-time, scores BANT criteria, and writes directly to CRM storage without hallucination.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: LIVE CALL MONITORING -->
+    <section id="content-calls" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="phone-call" class="h-5 w-5 text-blue-400"></i> Call Monitoring & Full Transcripts
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Review live call logs, audio duration, summaries, and post-call webhook intelligence.</p>
+          </div>
+          <button onclick="loadCalls()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i> Refresh Logs
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Direction / Time</th>
+                <th class="py-3 px-4">Contact</th>
+                <th class="py-3 px-4">Duration</th>
+                <th class="py-3 px-4">Outcome</th>
+                <th class="py-3 px-4">Summary</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="callsTableBody" class="divide-y divide-slate-800/60">
+              <tr>
+                <td colspan="6" class="py-8 text-center text-slate-500">Loading call history...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: APPOINTMENTS -->
+    <section id="content-appointments" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Confirmed Bookings -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="calendar-check" class="h-5 w-5 text-purple-400"></i> Confirmed Cal.com Bookings
+            </h2>
+            <button onclick="openBookingModal()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs flex items-center gap-1.5">
+              <i data-lucide="plus" class="h-4 w-4"></i> New Booking
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 mb-6">Appointments automatically scheduled through AI voice dialogues or synced via Cal.com webhooks.</p>
+
+          <div id="confirmedBookingsList" class="space-y-3">
+            <div class="text-center py-8 text-xs text-slate-500">Loading bookings...</div>
+          </div>
+        </div>
+
+        <!-- Available Calendar Openings -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            <i data-lucide="clock" class="h-4 w-4 text-cyan-400"></i> Real-time Slot Availability
+          </h3>
+          <p class="text-xs text-slate-400 mb-4">Dynamic openings offered to callers on demand:</p>
+          <div id="upcomingSlotsList" class="space-y-2 text-xs">
+            <div class="text-center py-6 text-slate-500">Checking Cal.com schedule...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: CRM & LEADS -->
+    <section id="content-crm" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="users" class="h-5 w-5 text-amber-400"></i> CRM Contacts & Lead Directory
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Universal lead records with BANT scores, stages, and full conversation history.</p>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <input type="text" id="leadSearchInput" onkeyup="filterLeadsTable()" placeholder="Search name, email, company..." class="bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+            <button onclick="openNewLeadModal()" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5">
+              <i data-lucide="user-plus" class="h-4 w-4"></i> Add Lead
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs" id="leadsTable">
+            <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Contact</th>
+                <th class="py-3 px-4">Company</th>
+                <th class="py-3 px-4">Lifecycle Stage</th>
+                <th class="py-3 px-4">BANT Score</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Calls</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody" class="divide-y divide-slate-800/60">
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-500">Loading CRM leads...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: ANALYTICS -->
+    <section id="content-analytics" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Call Volume & Conversion Chart -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            <i data-lucide="bar-chart-2" class="h-4 w-4 text-pink-400"></i> Stage Distribution & Conversions
+          </h3>
+          <div class="h-64 relative">
+            <canvas id="stageBarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- BANT Scoring Distribution -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            <i data-lucide="radar" class="h-4 w-4 text-cyan-400"></i> BANT Qualification Framework
+          </h3>
+          <div class="space-y-4 text-xs">
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+              <div class="flex justify-between font-semibold text-slate-300 mb-1">
+                <span>Budget (30 pts)</span>
+                <span class="text-emerald-400">Verified Budget Allocated</span>
+              </div>
+              <p class="text-slate-500 text-[11px]">Checks whether client has designated financial investment for automation.</p>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+              <div class="flex justify-between font-semibold text-slate-300 mb-1">
+                <span>Authority (25 pts)</span>
+                <span class="text-cyan-400">Decision Maker Identified</span>
+              </div>
+              <p class="text-slate-500 text-[11px]">Identifies if caller is CEO, Managing Partner, VP, or Evaluator.</p>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+              <div class="flex justify-between font-semibold text-slate-300 mb-1">
+                <span>Need (25 pts)</span>
+                <span class="text-amber-400">Pain Point & Urgency</span>
+              </div>
+              <p class="text-slate-500 text-[11px]">Assesses severity of missed calls, scheduling delays, and volume.</p>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+              <div class="flex justify-between font-semibold text-slate-300 mb-1">
+                <span>Timeline (20 pts)</span>
+                <span class="text-purple-400">Deployment Schedule</span>
+              </div>
+              <p class="text-slate-500 text-[11px]">Evaluates whether solution is needed immediately (< 30 days) vs future.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: SETTINGS & API -->
+    <section id="content-settings" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2 mb-2">
+          <i data-lucide="sliders" class="h-5 w-5 text-slate-400"></i> Configuration & System Integrations
+        </h2>
+        <p class="text-xs text-slate-400 mb-6">Inspect connected services, LLM runtime modes, and webhook endpoints.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- LLM & AI Engine Card -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4 text-xs">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+              <i data-lucide="sparkles" class="h-4 w-4 text-emerald-400"></i> AI Runtime Mode
+            </h4>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Current Mode:</span>
+                <span id="cfg-mode" class="font-semibold text-emerald-400">Deterministic Mock / State Engine</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">OpenAI API Key:</span>
+                <span id="cfg-openai-status" class="text-slate-400">Placeholder (Using Mock Engine)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Target Model:</span>
+                <span id="cfg-model" class="text-white font-mono">gpt-4o-mini</span>
+              </div>
+            </div>
+            <div class="pt-3 border-t border-slate-800 text-slate-500 text-[11px]">
+              Tip: Provide a valid OpenAI API key in your <code>.env</code> to activate live LLM function calling. Without it, the agent operates smoothly in offline mock state mode.
+            </div>
+          </div>
+
+          <!-- Cal.com & CRM Card -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4 text-xs">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+              <i data-lucide="database" class="h-4 w-4 text-cyan-400"></i> Integrations
+            </h4>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Cal.com API:</span>
+                <span id="cfg-calcom" class="font-semibold text-cyan-400">Mock Provider Active</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">CRM Provider:</span>
+                <span id="cfg-crm" class="text-white font-semibold">Local JSON File CRM</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">CRM Database:</span>
+                <span id="cfg-crm-db" class="text-slate-400 font-mono">data/mock_crm_database.json</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Dograh Workflows:</span>
+                <span class="text-emerald-400 font-semibold">Inbound & Outbound Ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Webhook URLs -->
+        <div class="mt-6 p-5 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-3">
+          <h4 class="font-bold text-white text-sm flex items-center gap-2">
+            <i data-lucide="webhook" class="h-4 w-4 text-purple-400"></i> Webhook & Tool Endpoints
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-300 font-mono">
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-slate-500 text-[10px] mb-1">DOGRAH POST-CALL WEBHOOK</div>
+              POST /webhooks/dograh/call-ended
+            </div>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-slate-500 text-[10px] mb-1">CAL.COM SYNC WEBHOOK</div>
+              POST /webhooks/calcom/booking-event
+            </div>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-slate-500 text-[10px] mb-1">CHECK AVAILABLE SLOTS TOOL</div>
+              POST /tools/calcom/check-slots
+            </div>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-slate-500 text-[10px] mb-1">BOOK APPOINTMENT TOOL</div>
+              POST /tools/calcom/book-appointment
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Transcript Modal -->
+  <div id="transcriptModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="file-text" class="h-4 w-4 text-emerald-400"></i> Call Transcript & Intelligence
+        </h3>
+        <button onclick="closeTranscriptModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <span class="text-slate-400 font-semibold">Summary:</span>
+          <p id="modalSummary" class="text-slate-200 mt-0.5 bg-slate-950 p-3 rounded-lg border border-slate-800/80"></p>
+        </div>
+        <div>
+          <span class="text-slate-400 font-semibold">Transcript:</span>
+          <pre id="modalTranscript" class="text-slate-300 mt-0.5 bg-slate-950 p-3 rounded-lg border border-slate-800/80 max-h-60 overflow-y-auto whitespace-pre-wrap font-sans text-xs custom-scroll"></pre>
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end">
+        <button onclick="closeTranscriptModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    let activeAgentId = 'alex';
+    let currentSessionId = 'session_' + Math.random().toString(36).substring(2, 9);
+    let isListening = false;
+    let recognition = null;
+    let leadsCache = [];
+    let funnelChart = null;
+    let stageBarChart = null;
+
+    // Initialize Web Speech API for voice recognition if available
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('simulatorInput').value = transcript;
+        stopMicrophone();
+        handleSimulatorSubmit();
+      };
+
+      recognition.onerror = () => {
+        stopMicrophone();
+      };
+
+      recognition.onend = () => {
+        stopMicrophone();
+      };
+    }
+
+    // Tab Navigation
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-slate-800', 'text-white');
+        btn.classList.add('text-slate-400');
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+      const activeBtn = document.getElementById('tab-' + tabName);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-slate-800', 'text-white');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      const activeContent = document.getElementById('content-' + tabName);
+      if (activeContent) {
+        activeContent.classList.remove('hidden');
+      }
+
+      if (tabName === 'dashboard') loadDashboard();
+      if (tabName === 'calls') loadCalls();
+      if (tabName === 'appointments') loadAppointments();
+      if (tabName === 'crm') loadCRM();
+      if (tabName === 'analytics') loadAnalytics();
+      if (tabName === 'settings') loadSettings();
+    }
+
+    // Load Overview Dashboard
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard/metrics');
+        const data = await res.json();
+        const kpis = data.kpis;
+
+        document.getElementById('kpi-calls').textContent = kpis.total_calls;
+        document.getElementById('kpi-bookings').textContent = kpis.appointments_booked;
+        document.getElementById('kpi-qualified').textContent = kpis.qualified_leads;
+        document.getElementById('kpi-conversion').textContent = kpis.conversion_rate_percent + '%';
+
+        renderMiniFunnel(data.stage_funnel);
+        loadRecentCallsPreview();
+      } catch (err) {
+        console.error('Error loading dashboard metrics:', err);
+      }
+    }
+
+    async function loadRecentCallsPreview() {
+      try {
+        const res = await fetch('/api/dashboard/calls');
+        const data = await res.json();
+        const container = document.getElementById('dashboardRecentCalls');
+        container.innerHTML = '';
+
+        if (!data.calls || data.calls.length === 0) {
+          container.innerHTML = '<div class="py-4 text-center text-xs text-slate-500">No calls recorded yet. Click "Test Live Voice Call" to simulate one!</div>';
+          return;
+        }
+
+        data.calls.slice(0, 4).forEach(call => {
+          const item = document.createElement('div');
+          item.className = 'py-3 flex items-center justify-between text-xs';
+          const isOutbound = call.direction === 'outbound';
+          const iconColor = isOutbound ? 'text-cyan-400 bg-cyan-500/10' : 'text-emerald-400 bg-emerald-500/10';
+          const icon = isOutbound ? 'phone-outgoing' : 'phone-incoming';
+
+          item.innerHTML = `
+            <div class="flex items-center space-x-3">
+              <div class="h-8 w-8 rounded-lg ${iconColor} flex items-center justify-center">
+                <i data-lucide="${icon}" class="h-4 w-4"></i>
+              </div>
+              <div>
+                <span class="font-bold text-white">${call.contact_name || 'Caller'}</span>
+                <p class="text-[11px] text-slate-400 line-clamp-1">${call.summary || 'Call completed'}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${call.outcome || 'Completed'}</span>
+              <div class="text-[10px] text-slate-500 mt-1">${call.duration_seconds || 60}s duration</div>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading recent calls preview:', err);
+      }
+    }
+
+    // Mini Funnel Chart
+    function renderMiniFunnel(stages) {
+      const ctx = document.getElementById('miniFunnelChart').getContext('2d');
+      if (funnelChart) funnelChart.destroy();
+
+      funnelChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Lead', 'MQL', 'SQL', 'Disqualified'],
+          datasets: [{
+            data: [stages.Lead || 0, stages['Marketing Qualified Lead (MQL)'] || 0, stages['Sales Qualified Lead (SQL)'] || 0, stages.Disqualified || 0],
+            backgroundColor: ['#64748b', '#38bdf8', '#22c55e', '#ef4444'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } }
+          },
+          cutout: '68%'
+        }
+      });
+    }
+
+    // Agent Simulator Logic
+    function selectActiveSimulatorAgent(agentId) {
+      activeAgentId = agentId;
+      const isAlex = agentId === 'alex';
+
+      const btnAlex = document.getElementById('btn-select-alex');
+      const btnJordan = document.getElementById('btn-select-jordan');
+
+      if (isAlex) {
+        btnAlex.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-white transition-all flex items-center gap-1.5';
+        btnJordan.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1.5';
+        document.getElementById('simAgentAvatar').className = 'h-8 w-8 rounded-full bg-emerald-500/20 border border-emerald-500 text-emerald-400 flex items-center justify-center font-bold text-xs';
+        document.getElementById('simAgentAvatar').textContent = 'A';
+        document.getElementById('simAgentName').textContent = 'Alex (Inbound Booking)';
+      } else {
+        btnJordan.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 text-white transition-all flex items-center gap-1.5';
+        btnAlex.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1.5';
+        document.getElementById('simAgentAvatar').className = 'h-8 w-8 rounded-full bg-cyan-500/20 border border-cyan-500 text-cyan-400 flex items-center justify-center font-bold text-xs';
+        document.getElementById('simAgentAvatar').textContent = 'J';
+        document.getElementById('simAgentName').textContent = 'Jordan (Outbound Qualification)';
+      }
+
+      resetSimulatorSession();
+    }
+
+    function startAgentSimulation(agentId) {
+      selectActiveSimulatorAgent(agentId);
+      switchTab('agents');
+    }
+
+    async function resetSimulatorSession() {
+      currentSessionId = 'session_' + Math.random().toString(36).substring(2, 9);
+      const container = document.getElementById('dialogueContainer');
+      container.innerHTML = '';
+
+      try {
+        await fetch(`/api/dashboard/agent/reset?session_id=${currentSessionId}&agent_id=${activeAgentId}`, { method: 'POST' });
+      } catch (e) {}
+
+      // Add initial greeting based on agent
+      if (activeAgentId === 'alex') {
+        const welcome = "Hello! Thank you for calling NovaTech Solutions. My name is Alex. Are you calling to book a new appointment or manage an existing one?";
+        appendMessage('agent', 'Alex', welcome);
+        speakText(welcome);
+      } else {
+        const greeting = "Hi there, this is Jordan calling from NovaTech Solutions. I noticed your interest in our AI voice booking solutions. Did I catch you at an okay time for a quick two-minute chat?";
+        appendMessage('agent', 'Jordan', greeting);
+        speakText(greeting);
+      }
+
+      document.getElementById('inspectPhase').textContent = 'Greeting';
+      document.getElementById('inspectScore').textContent = '--';
+      document.getElementById('inspectorToolCard').innerHTML = '<span class="text-slate-500 italic">No tools called yet.</span>';
+    }
+
+    function appendMessage(sender, name, text, tools = []) {
+      const container = document.getElementById('dialogueContainer');
+      const div = document.createElement('div');
+      const isAgent = sender === 'agent';
+
+      div.className = `flex ${isAgent ? 'justify-start' : 'justify-end'} animate-fade-in`;
+
+      let toolHtml = '';
+      if (tools && tools.length > 0) {
+        toolHtml = tools.map(t => `
+          <div class="mt-2 text-[11px] p-2 bg-slate-900 rounded border border-slate-700/80 flex items-center gap-1.5 text-cyan-400">
+            <i data-lucide="zap" class="h-3 w-3"></i>
+            <span>Tool Executed: <strong>${t.tool}</strong></span>
+          </div>
+        `).join('');
+      }
+
+      div.innerHTML = `
+        <div class="max-w-[85%] rounded-2xl p-4 ${isAgent ? 'bg-slate-900 border border-slate-800 text-slate-100' : 'bg-emerald-600 text-white'} text-xs shadow-md">
+          <div class="font-bold text-[11px] opacity-75 mb-1">${name}</div>
+          <div class="leading-relaxed">${text}</div>
+          ${toolHtml}
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      lucide.createIcons();
+    }
+
+    async function handleSimulatorSubmit(event) {
+      if (event) event.preventDefault();
+      const input = document.getElementById('simulatorInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      input.value = '';
+      appendMessage('user', 'You (Caller)', message);
+
+      const sendBtn = document.getElementById('sendBtn');
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/dashboard/agent/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: currentSessionId,
+            agent_id: activeAgentId,
+            message: message,
+          })
+        });
+
+        const data = await res.json();
+        const agentName = activeAgentId === 'alex' ? 'Alex' : 'Jordan';
+        appendMessage('agent', agentName, data.speech, data.tool_calls);
+        speakText(data.speech);
+
+        // Update inspector telemetry
+        if (data.tool_calls && data.tool_calls.length > 0) {
+          document.getElementById('inspectorToolCard').innerHTML = data.tool_calls.map(tc => `
+            <div class="p-2 bg-slate-950 rounded border border-slate-800 space-y-1">
+              <div class="text-cyan-400 font-bold">${tc.tool}</div>
+              <pre class="text-[10px] text-slate-400 overflow-x-auto">${JSON.stringify(tc.result, null, 2)}</pre>
+            </div>
+          `).join('');
+        }
+
+        if (data.score !== undefined && data.score !== null) {
+          document.getElementById('inspectScore').textContent = data.score + '/100';
+        }
+        if (data.current_phase) {
+          document.getElementById('inspectPhase').textContent = data.current_phase.toUpperCase();
+        }
+
+      } catch (err) {
+        console.error('Error in agent chat turn:', err);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    function fillPrompt(text) {
+      document.getElementById('simulatorInput').value = text;
+    }
+
+    // Voice Synthesis & Recognition Helpers
+    function speakText(text) {
+      const toggle = document.getElementById('voiceSynthesisToggle');
+      if (!toggle || !toggle.checked || !('speechSynthesis' in window)) return;
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+
+      const waveform = document.getElementById('voiceWaveform');
+      if (waveform) waveform.classList.remove('hidden'), waveform.classList.add('flex');
+
+      utterance.onend = () => {
+        if (waveform) waveform.classList.add('hidden'), waveform.classList.remove('flex');
+      };
+      utterance.onerror = () => {
+        if (waveform) waveform.classList.add('hidden'), waveform.classList.remove('flex');
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function toggleMicrophone() {
+      if (!recognition) {
+        alert('Speech recognition is not supported in this browser. Please use Chrome/Edge or type your response.');
+        return;
+      }
+      if (isListening) {
+        stopMicrophone();
+      } else {
+        startMicrophone();
+      }
+    }
+
+    function startMicrophone() {
+      if (!recognition) return;
+      isListening = true;
+      document.getElementById('micButton').classList.add('bg-red-500/20', 'border-red-500');
+      document.getElementById('micIcon').classList.add('text-red-400');
+      recognition.start();
+    }
+
+    function stopMicrophone() {
+      if (!recognition) return;
+      isListening = false;
+      document.getElementById('micButton').classList.remove('bg-red-500/20', 'border-red-500');
+      document.getElementById('micIcon').classList.remove('text-red-400');
+      try { recognition.stop(); } catch (e) {}
+    }
+
+    // Load Calls Tab
+    async function loadCalls() {
+      try {
+        const res = await fetch('/api/dashboard/calls');
+        const data = await res.json();
+        const tbody = document.getElementById('callsTableBody');
+        tbody.innerHTML = '';
+
+        if (!data.calls || data.calls.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500">No calls found in CRM.</td></tr>';
+          return;
+        }
+
+        data.calls.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-800/40 transition-colors';
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-medium text-white flex items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.direction === 'inbound' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-cyan-500/20 text-cyan-400'}">${c.direction.toUpperCase()}</span>
+              <span class="text-slate-400 text-[11px]">${new Date(c.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </td>
+            <td class="py-3 px-4 text-slate-200">
+              <div class="font-bold">${c.contact_name || 'Anonymous'}</div>
+              <div class="text-[11px] text-slate-400">${c.contact_phone || c.contact_email || ''}</div>
+            </td>
+            <td class="py-3 px-4 text-slate-300">${c.duration_seconds || 60}s</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${c.outcome || 'Completed'}</span></td>
+            <td class="py-3 px-4 text-slate-300 max-w-xs truncate">${c.summary || 'General conversation'}</td>
+            <td class="py-3 px-4 text-right">
+              <button onclick='viewTranscript(${JSON.stringify(c.summary || "")}, ${JSON.stringify(c.transcript || "")})' class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700">Transcript</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading calls:', err);
+      }
+    }
+
+    function viewTranscript(summary, transcript) {
+      document.getElementById('modalSummary').textContent = summary || 'No summary available.';
+      document.getElementById('modalTranscript').textContent = transcript || 'No raw transcript recorded for this call.';
+      document.getElementById('transcriptModal').classList.remove('hidden');
+    }
+
+    function closeTranscriptModal() {
+      document.getElementById('transcriptModal').classList.add('hidden');
+    }
+
+    // Load Appointments Tab
+    async function loadAppointments() {
+      try {
+        const res = await fetch('/api/dashboard/appointments');
+        const data = await res.json();
+
+        // Confirmed bookings
+        const bList = document.getElementById('confirmedBookingsList');
+        bList.innerHTML = '';
+        if (!data.bookings || data.bookings.length === 0) {
+          bList.innerHTML = '<div class="py-8 text-center text-xs text-slate-500">No scheduled appointments yet.</div>';
+        } else {
+          data.bookings.forEach(b => {
+            const item = document.createElement('div');
+            item.className = 'p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between text-xs';
+            item.innerHTML = `
+              <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold">
+                  <i data-lucide="calendar" class="h-5 w-5"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-white">${b.name || 'Attendee'}</h4>
+                  <p class="text-slate-400 text-[11px]">${b.email} • ID: ${b.booking_id}</p>
+                  <p class="text-purple-400 text-[11px] mt-0.5">${new Date(b.slot_time).toLocaleString()}</p>
+                </div>
+              </div>
+              <button onclick="cancelAppointment('${b.booking_id}')" class="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold border border-red-500/30">Cancel</button>
+            `;
+            bList.appendChild(item);
+          });
+        }
+
+        // Upcoming Openings
+        const sList = document.getElementById('upcomingSlotsList');
+        sList.innerHTML = '';
+        if (data.upcoming_slots) {
+          data.upcoming_slots.slice(0, 6).forEach(s => {
+            const el = document.createElement('div');
+            el.className = 'p-3 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between';
+            el.innerHTML = `
+              <div>
+                <div class="font-semibold text-white">${s.formatted_speech}</div>
+                <div class="text-[10px] text-slate-500 font-mono">${s.date} ${s.time}</div>
+              </div>
+              <button onclick="quickBookSlot('${s.iso_time}')" class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-[11px] font-semibold border border-emerald-500/30">Book</button>
+            `;
+            sList.appendChild(el);
+          });
+        }
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading appointments:', err);
+      }
+    }
+
+    async function cancelAppointment(bookingId) {
+      if (!confirm('Are you sure you want to cancel booking ' + bookingId + '?')) return;
+      try {
+        await fetch('/api/dashboard/appointments/cancel', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ booking_id: bookingId })
+        });
+        loadAppointments();
+      } catch (e) {
+        alert('Error cancelling booking: ' + e);
+      }
+    }
+
+    async function quickBookSlot(isoTime) {
+      const name = prompt('Enter Attendee Full Name:', 'Jane Doe');
+      if (!name) return;
+      const email = prompt('Enter Attendee Email:', 'jane.doe@example.com');
+      if (!email) return;
+
+      try {
+        const res = await fetch('/api/dashboard/appointments/book', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            start_time: isoTime,
+            name: name,
+            email: email,
+            notes: 'Booked via Web Dashboard'
+          })
+        });
+        const result = await res.json();
+        alert(result.speech_confirmation || 'Appointment successfully booked!');
+        loadAppointments();
+      } catch (e) {
+        alert('Booking error: ' + e);
+      }
+    }
+
+    // Load CRM Tab
+    async function loadCRM() {
+      try {
+        const res = await fetch('/api/dashboard/crm/leads');
+        const data = await res.json();
+        leadsCache = data.leads || [];
+        renderLeads(leadsCache);
+      } catch (err) {
+        console.error('Error loading CRM leads:', err);
+      }
+    }
+
+    function renderLeads(leads) {
+      const tbody = document.getElementById('leadsTableBody');
+      tbody.innerHTML = '';
+
+      if (!leads || leads.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-500">No leads found in CRM.</td></tr>';
+        return;
+      }
+
+      leads.forEach(l => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/40 transition-colors';
+        const score = l.lead_score || 0;
+        const scoreBadge = score >= 70 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                           score >= 40 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                           'bg-slate-800 text-slate-400 border-slate-700';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-bold text-white">
+            <div>${l.name}</div>
+            <div class="text-[11px] font-normal text-slate-400">${l.email || l.phone || ''}</div>
+          </td>
+          <td class="py-3 px-4 text-slate-300">${l.company || 'Independent'}</td>
+          <td class="py-3 px-4 text-slate-300">${l.stage || 'Lead'}</td>
+          <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold border ${scoreBadge}">${score}/100</span></td>
+          <td class="py-3 px-4 text-slate-400">${l.status || 'New Lead'}</td>
+          <td class="py-3 px-4 text-slate-300 font-semibold">${(l.call_logs || []).length}</td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="startOutboundToLead('${l.name}', '${l.company}', '${l.id}')" class="px-2.5 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/30 text-[11px] font-semibold">Call with Jordan</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterLeadsTable() {
+      const query = document.getElementById('leadSearchInput').value.toLowerCase();
+      const filtered = leadsCache.filter(l => 
+        (l.name && l.name.toLowerCase().includes(query)) ||
+        (l.email && l.email.toLowerCase().includes(query)) ||
+        (l.company && l.company.toLowerCase().includes(query))
+      );
+      renderLeads(filtered);
+    }
+
+    function startOutboundToLead(name, company, leadId) {
+      activeAgentId = 'jordan';
+      selectActiveSimulatorAgent('jordan');
+      switchTab('agents');
+    }
+
+    // Load Analytics Tab
+    async function loadAnalytics() {
+      try {
+        const res = await fetch('/api/dashboard/metrics');
+        const data = await res.json();
+        const stages = data.stage_funnel;
+
+        const ctx = document.getElementById('stageBarChart').getContext('2d');
+        if (stageBarChart) stageBarChart.destroy();
+
+        stageBarChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Lead', 'Marketing Qualified (MQL)', 'Sales Qualified (SQL)', 'Disqualified'],
+            datasets: [{
+              label: 'Total Leads',
+              data: [stages.Lead || 0, stages['Marketing Qualified Lead (MQL)'] || 0, stages['Sales Qualified Lead (SQL)'] || 0, stages.Disqualified || 0],
+              backgroundColor: ['#64748b', '#38bdf8', '#22c55e', '#ef4444'],
+              borderRadius: 8,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.4)' }, ticks: { color: '#94a3b8' } },
+              x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+      } catch (err) {
+        console.error('Error loading analytics:', err);
+      }
+    }
+
+    // Load Settings Tab
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/dashboard/settings');
+        const s = await res.json();
+
+        document.getElementById('aiModeLabel').textContent = s.mode.ai_mode;
+        document.getElementById('cfg-mode').textContent = s.mode.ai_mode;
+        document.getElementById('cfg-openai-status').textContent = s.mode.has_valid_openai_key ? 'Valid Key Active (Live LLM)' : 'Placeholder Key (Safe Mock Mode)';
+        document.getElementById('cfg-model').textContent = s.mode.llm_model;
+        document.getElementById('cfg-calcom').textContent = s.integrations.cal_com.status;
+        document.getElementById('cfg-crm').textContent = s.integrations.crm.provider.toUpperCase() + ' Adapter';
+        document.getElementById('cfg-crm-db').textContent = s.integrations.crm.database_file;
+      } catch (err) {
+        console.error('Error loading settings:', err);
+      }
+    }
+
+    // Initial on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadDashboard();
+      loadSettings();
+      // Start initial agent greeting
+      resetSimulatorSession();
+    });
+  </script>
+</body>
+</html>

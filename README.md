@@ -3,10 +3,11 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![Platform - Dograh AI](https://img.shields.io/badge/Voice%20Platform-Dograh%20AI-purple.svg)](https://github.com/dograh-hq/dograh)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
+[![Web Dashboard](https://img.shields.io/badge/Interface-Web%20Dashboard%20SPA-blue.svg)](#-interactive-web-dashboard--voice-simulator)
 [![Cal.com API](https://img.shields.io/badge/Scheduling-Cal.com%20v1%2Fv2-black.svg)](https://cal.com)
 [![CRM Ready](https://img.shields.io/badge/CRM-HubSpot%20%7C%20Salesforce%20%7C%20Local-orange.svg)](#crm-integrations)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests Passing](https://img.shields.io/badge/Tests-22%2F22%20Passing-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-30%2F30%20Passing-brightgreen.svg)](tests/)
 
 An enterprise-grade, conversational **Voice AI Agent platform** designed for **inbound appointment booking** and **outbound BANT lead qualification**, powered by **Dograh AI**, **Python**, **LLM APIs**, **Cal.com**, and **CRM systems**.
 
@@ -14,6 +15,10 @@ An enterprise-grade, conversational **Voice AI Agent platform** designed for **i
 
 ## 📌 Executive Summary & Key Highlights
 
+* **Interactive Web Dashboard & Voice Console**:
+  * Real-time web interface served directly by FastAPI at `http://localhost:8000/`.
+  * Built-in browser speech recognition (Microphone STT) and text-to-speech audio synthesis (TTS).
+  * Live call monitoring, full transcript inspector, CRM lead management, and Cal.com appointment scheduling.
 * **Dual Conversational Voice AI Agents**:
   * **Inbound Booking Agent (`Alex`)**: Handles high-volume customer inquiries, resolves availability conflicts, books appointments in real time on Cal.com, manages cancellations, and triggers warm transfers to human agents.
   * **Outbound Lead Qualification Agent (`Jordan`)**: Runs context-aware phone calls using the **BANT** (Budget, Authority, Need, Timeline) framework, scores leads dynamically (0–100), and auto-schedules discovery meetings on Cal.com for qualified leads (SQLs).
@@ -152,12 +157,15 @@ AI-Voice-Agent-Booking-Lead-Qualification/
 │   ├── server/
 │   │   ├── __init__.py
 │   │   ├── app.py                        # FastAPI application instance & middleware
+│   │   ├── routes_dashboard.py           # Web Dashboard REST APIs (metrics, chat, CRM, slots)
 │   │   ├── routes_health.py              # Health check & diagnostics
 │   │   ├── routes_tools.py               # Mid-call HTTP endpoints invoked by Dograh
 │   │   └── routes_webhooks.py            # Post-call analysis & Cal.com webhook sync
 │   ├── simulator/
 │   │   ├── __init__.py
 │   │   └── voice_simulator.py            # Rich terminal voice conversation simulator
+│   ├── static/
+│   │   └── index.html                    # Single-Page Web Dashboard & Voice Interface
 │   ├── tools/
 │   │   ├── __init__.py
 │   │   ├── calcom_tool.py                # Cal.com API availability & booking client
@@ -174,6 +182,7 @@ AI-Voice-Agent-Booking-Lead-Qualification/
 │   ├── test_calcom_tool.py               # Cal.com slot lookup and booking tests
 │   ├── test_conversation_flows.py       # Multi-turn conversation logic tests
 │   ├── test_crm_tool.py                  # CRM lead lookup, update, and call log tests
+│   ├── test_dashboard_routes.py         # Web dashboard UI and REST API tests
 │   ├── test_dograh_workflow.py           # Dograh workflow graph schema validation
 │   ├── test_qualification_engine.py      # BANT scoring & lifecycle stage tests
 │   └── test_server_routes.py             # FastAPI integration endpoint tests
@@ -217,6 +226,25 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 *(By default, the project is configured with zero-dependency mock mode so you can run and test everything immediately without needing paid API keys!)*
+
+---
+
+## 🖥️ Interactive Web Dashboard & Voice Simulator
+
+A complete responsive web dashboard is built directly into the FastAPI backend service:
+
+```bash
+python scripts/run_server.py
+```
+Open your browser and navigate to **[http://localhost:8000/](http://localhost:8000/)** (or `/dashboard`):
+
+* **Executive KPI Dashboard**: Live tracking of total calls, appointments booked, qualified leads (SQL), warm leads (MQL), and booking conversion rates.
+* **Interactive AI Agents Console**: Test conversations with **Alex (Inbound Booking)** and **Jordan (Outbound Qualification)**. Supports **Microphone Voice Input** (STT) and **Audio Speech Synthesis** (TTS) so you can talk to the agent like a real phone call!
+* **Live Call Monitoring**: Inspect call histories, duration, outcome badges, and view complete multi-turn conversation transcripts.
+* **Cal.com Appointment Management**: View confirmed calendar bookings, check real-time availability slots, and book or cancel appointments with 1-click.
+* **Universal CRM & Lead Directory**: Search, filter, and review contacts, BANT qualification scores (0–100), and dispatch calls.
+* **Visual Analytics**: Interactive stage conversion funnels and BANT framework breakdown charts.
+* **Settings & Safe Mode Detection**: Automatically detects placeholder vs valid OpenAI keys, operating safely in offline mock state engine mode without crash or error.
 
 ---
 
@@ -296,19 +324,20 @@ The outbound agent continuously scores leads across 4 dimensions:
 
 ## 🧪 Running Automated Tests
 
-Run the full pytest test suite (22 unit & integration tests):
+Run the full pytest test suite (30 unit & integration tests):
 
 ```bash
 python -m pytest -v
 ```
 
-All 22 tests validate:
+All 30 tests validate:
+* Web Dashboard SPA interface and unified REST APIs (metrics, CRM, bookings, chat)
 * Cal.com slot calculation, natural speech formatting, booking, and cancellation
 * CRM CRUD, contact lookup, BANT scoring updates, and call logging
 * BANT qualification engine thresholds & stage transitions
 * Dograh workflow JSON schema integrity and tool definitions
 * FastAPI REST tool calling endpoints and webhook receivers
-* Multi-turn conversational state machines
+* Multi-turn conversational state machines with safe fallback detection
 
 ---
 
